@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { OrthographicCamera, ContactShadows } from '@react-three/drei'
 import { useLayoutEffect, useRef } from 'react'
 import * as THREE from 'three'
+import { COUCH_POS } from '@/seat'
 
 const C = {
   brick: '#c8775a', brickDark: '#a35a3f', mortar: '#7a3f2c',
@@ -20,6 +21,7 @@ const C = {
   white: '#ffffff', coffee: '#3b1f10', milk: '#fff5e0',
   warmLight: '#ffcd80', door: '#5b3a2e', metalBlack: '#222',
   signCream: '#fbeac4', signText: '#3a2014',
+  couchBody: '#6d3a2a', couchCushion: '#b85a3c', couchPiping: '#3a1e14',
 }
 
 const Box = ({ size = [1, 1, 1], color, ...rest }) => (
@@ -413,12 +415,42 @@ function Bicycle({ position = [-4.5, 0, 3.5] }) {
   )
 }
 
+function Couch() {
+  // Footprint matches COUCH_BOX in @/seat: X [-1.1, 1.1], Z [-0.55, 0.35].
+  // Seat surface around y ≈ SEAT_HEIGHT (0.45).
+  return (
+    <group position={[COUCH_POS.x, 0, COUCH_POS.z]}>
+      {/* base / frame */}
+      <Box size={[2.20, 0.40, 0.90]} position={[0, 0.20, -0.10]} color={C.couchBody} />
+      {/* seat cushions */}
+      <Box size={[0.62, 0.12, 0.70]} position={[-0.70, 0.46, -0.05]} color={C.couchCushion} />
+      <Box size={[0.62, 0.12, 0.70]} position={[0.00, 0.46, -0.05]} color={C.couchCushion} />
+      <Box size={[0.62, 0.12, 0.70]} position={[0.70, 0.46, -0.05]} color={C.couchCushion} />
+      {/* backrest body */}
+      <Box size={[2.20, 0.55, 0.20]} position={[0, 0.675, -0.45]} color={C.couchBody} />
+      {/* back cushions */}
+      <Box size={[0.62, 0.42, 0.14]} position={[-0.70, 0.66, -0.28]} color={C.couchCushion} />
+      <Box size={[0.62, 0.42, 0.14]} position={[0.00, 0.66, -0.28]} color={C.couchCushion} />
+      <Box size={[0.62, 0.42, 0.14]} position={[0.70, 0.66, -0.28]} color={C.couchCushion} />
+      {/* armrests */}
+      <Box size={[0.20, 0.55, 0.90]} position={[-1.00, 0.275, -0.10]} color={C.couchBody} />
+      <Box size={[0.20, 0.55, 0.90]} position={[1.00, 0.275, -0.10]} color={C.couchBody} />
+      {/* feet */}
+      <Cyl args={[0.05, 0.05, 0.06, 10]} position={[-0.98, 0.03, -0.40]} color={C.couchPiping} />
+      <Cyl args={[0.05, 0.05, 0.06, 10]} position={[0.98, 0.03, -0.40]} color={C.couchPiping} />
+      <Cyl args={[0.05, 0.05, 0.06, 10]} position={[-0.98, 0.03, 0.20]} color={C.couchPiping} />
+      <Cyl args={[0.05, 0.05, 0.06, 10]} position={[0.98, 0.03, 0.20]} color={C.couchPiping} />
+    </group>
+  )
+}
+
 export function Scene() {
   return (
     <>
       <Floor />
       <BrickWall size={[16.4, 6, 0.4]} position={[0, 3, -5.0]} facing="z" />
       <BrickWall size={[0.4, 6, 10.4]} position={[-8.2, 3, 0]} facing="x" />
+      <Couch />
     </>
   )
 }

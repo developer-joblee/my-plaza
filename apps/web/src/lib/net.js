@@ -62,7 +62,7 @@ function handle(msg) {
   if (msg.t === 'welcome') {
     const next = new Map()
     for (const p of msg.players ?? []) {
-      next.set(p.id, { id: p.id, userId: p.userId, name: p.name, color: p.color })
+      next.set(p.id, { id: p.id, userId: p.userId, name: p.name, color: p.color, sitting: !!p.sitting })
       ensure(p.id, p.x, p.z, p.dir)
     }
     useStore.setState((s) => ({ self: { ...s.self, id: msg.id }, roster: next }))
@@ -76,7 +76,7 @@ function handle(msg) {
     ensure(player.id, player.x, player.z, player.dir)
     useStore.setState((s) => {
       const next = new Map(s.roster)
-      next.set(player.id, { id: player.id, userId: player.userId, name: player.name, color: player.color })
+      next.set(player.id, { id: player.id, userId: player.userId, name: player.name, color: player.color, sitting: !!player.sitting })
       return { roster: next }
     })
     handlers.join(player)
@@ -85,6 +85,17 @@ function handle(msg) {
 
   if (msg.t === 'move') {
     setTarget(msg.id, msg.x, msg.z, msg.dir)
+    return
+  }
+
+  if (msg.t === 'sit') {
+    useStore.setState((s) => {
+      const cur = s.roster.get(msg.id)
+      if (!cur) return s
+      const next = new Map(s.roster)
+      next.set(msg.id, { ...cur, sitting: !!msg.sitting })
+      return { roster: next }
+    })
     return
   }
 
@@ -118,6 +129,11 @@ export function sendMove(x, z, dir) {
   lastSig = sig
   lastSentAt = now
   socket.send(JSON.stringify({ t: 'move', x: qx, z: qz, dir: qd }))
+}
+
+export function sendSit(sitting) {
+  if (!socket || socket.readyState !== 1) return
+  socket.send(JSON.stringify({ t: 'sit', sitting: !!sitting }))
 }
 
 export function disconnectWS() {

@@ -6,4 +6,7 @@ export const useStore = create(() => ({
   roster: new Map(),    // connId -> { id, userId, name, color }
   micEnabled: true,
   speaking: new Set(),  // set of LiveKit identities (Supabase user IDs) currently speaking
+  nearSeat: false,
+  sitting: false,
+  standingUp: false,
 }))

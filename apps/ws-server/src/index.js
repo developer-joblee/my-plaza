@@ -40,6 +40,7 @@ wss.on('connection', (ws, req) => {
         x: 0,
         z: 1,
         dir: 0,
+        sitting: false,
       }
       room.set(connId, { ws, player })
 
@@ -65,6 +66,15 @@ wss.on('connection', (ws, req) => {
         z: entry.player.z,
         dir: entry.player.dir,
       }, connId)
+      return
+    }
+
+    if (msg.t === 'sit') {
+      const entry = room.get(connId)
+      if (!entry) return
+      const sitting = !!msg.sitting
+      entry.player.sitting = sitting
+      broadcast(room, { t: 'sit', id: connId, sitting }, connId)
       return
     }
   })

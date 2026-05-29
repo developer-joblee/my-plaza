@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import { Scene, Lights } from './CoffeeShop'
 import { LocalPlayer, RemotePlayer } from './Player'
 import { useKeyboardControls } from '@/controls'
-import { connect, disconnectWS } from '@/lib/net'
+import { connect, disconnectWS, sendSit } from '@/lib/net'
 import { connectVoice, setMicEnabled, disconnectVoice, onActiveSpeakersChanged } from '@/lib/livekit-voice'
 import { useStore } from '@/store'
 
@@ -45,6 +45,51 @@ function toggleMic() {
   const next = !useStore.getState().micEnabled
   setMicEnabled(next)
   useStore.setState({ micEnabled: next })
+}
+
+function useSitToggle() {
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.code !== 'KeyE' || e.repeat) return
+      const { sitting, nearSeat, standingUp } = useStore.getState()
+      if (standingUp) return
+      if (sitting) {
+        useStore.setState({ sitting: false, standingUp: true })
+        sendSit(false)
+      } else if (nearSeat) {
+        useStore.setState({ sitting: true, standingUp: false })
+        sendSit(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+}
+
+function SitPrompt() {
+  const nearSeat = useStore((s) => s.nearSeat)
+  const sitting = useStore((s) => s.sitting)
+  if (!sitting && !nearSeat) return null
+  return (
+    <div
+      style={{
+        position: 'absolute', left: '50%', bottom: 80, transform: 'translateX(-50%)',
+        padding: '10px 16px', borderRadius: 10,
+        background: 'rgba(26,16,10,0.78)', color: '#fbe6c2',
+        fontFamily: 'ui-monospace, Consolas, monospace', fontSize: 14,
+        pointerEvents: 'none', userSelect: 'none', letterSpacing: 0.3,
+        border: '2px solid #3a2014',
+      }}
+    >
+      Aperte{' '}
+      <span style={{
+        display: 'inline-block', padding: '1px 7px', borderRadius: 5,
+        background: '#f4c95a', color: '#3a2014', fontWeight: 700,
+        margin: '0 2px',
+      }}>E</span>{' '}
+      para {sitting ? 'levantar' : 'sentar'}
+    </div>
+  )
 }
 
 function ParticipantPanel({ user }) {
@@ -99,6 +144,7 @@ function HUD({ room, onLeave, user }) {
   return (
     <>
       <ParticipantPanel user={user} />
+      <SitPrompt />
 
       <div
         style={{
@@ -214,6 +260,7 @@ export default function WorldClient({ room, roomName, user, livekitUrl, livekitT
   const playerRef = useRef()
 
   useKeyboardControls()
+  useSitToggle()
 
   const enter = async () => {
     setLoading(true)
@@ -235,7 +282,7 @@ export default function WorldClient({ room, roomName, user, livekitUrl, livekitT
   const leave = () => {
     disconnectVoice()
     disconnectWS()
-    useStore.setState({ self: null, roster: new Map(), input: { x: 0, z: 0 }, speaking: new Set() })
+    useStore.setState({ self: null, roster: new Map(), input: { x: 0, z: 0 }, speaking: new Set(), nearSeat: false, sitting: false, standingUp: false })
     window.location.href = '/lobby'
   }
 

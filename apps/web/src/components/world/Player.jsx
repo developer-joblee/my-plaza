@@ -1,15 +1,20 @@
 'use client'
-import { useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { useGLTF, useAnimations } from '@react-three/drei'
+import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { useStore } from '@/store'
 import { positions } from '@/positions'
 import { sendMove } from '@/lib/net'
 
-const SPEED = 3.2
+const SPEED = 3.36
 const INV_SQRT2 = 1 / Math.SQRT2
-const BOUNDS = { xMin: -3.7, xMax: 3.7, zMin: -1.3, zMax: 2.2 }
+const BOUNDS = { xMin: -7.4, xMax: 7.4, zMin: -2.6, zMax: 4.4 }
 const LERP_PER_SEC = 10
 const TWO_PI = Math.PI * 2
+
+const IDLE_URL = '/models/idle.glb'
+const WALK_URL = '/models/walking.glb'
 
 function inputToWorld(input) {
   return {
@@ -39,77 +44,80 @@ function SpeakingRing({ userId }) {
   )
 }
 
-function Avatar({ color, bodyRef, userId }) {
+function Avatar({ moving, userId }) {
+  const idle = useGLTF(IDLE_URL)
+  const walk = useGLTF(WALK_URL)
+  const scene = useMemo(() => cloneSkeleton(idle.scene), [idle.scene])
+  const clips = useMemo(() => {
+    const idleClip = idle.animations[0]?.clone()
+    const walkClip = walk.animations[0]?.clone()
+    if (idleClip) idleClip.name = 'idle'
+    if (walkClip) walkClip.name = 'walk'
+    return [idleClip, walkClip].filter(Boolean)
+  }, [idle, walk])
+  const { actions } = useAnimations(clips, scene)
+
+  useEffect(() => {
+    const idleAction = actions.idle
+    const walkAction = actions.walk
+    const next = moving ? walkAction : idleAction
+    const prev = moving ? idleAction : walkAction
+    if (next && next !== prev) {
+      next.reset().fadeIn(0.2).play()
+      prev?.fadeOut(0.2)
+    } else if (next) {
+      next.play()
+    }
+  }, [moving, actions])
+
   return (
-    <group ref={bodyRef}>
+    <group>
       {userId && <SpeakingRing userId={userId} />}
-      <mesh castShadow position={[0, 0.55, 0]}>
-        <capsuleGeometry args={[0.22, 0.42, 8, 16]} />
-        <meshStandardMaterial color={color} roughness={0.75} />
-      </mesh>
-      <mesh castShadow position={[0, 0.45, 0.18]}>
-        <boxGeometry args={[0.36, 0.32, 0.04]} />
-        <meshStandardMaterial color="#fbf3df" roughness={0.7} />
-      </mesh>
-      <mesh castShadow position={[0, 1.08, 0]}>
-        <sphereGeometry args={[0.2, 20, 20]} />
-        <meshStandardMaterial color="#e8c39a" roughness={0.7} />
-      </mesh>
-      <mesh position={[0, 1.08, 0.2]}>
-        <sphereGeometry args={[0.04, 8, 8]} />
-        <meshStandardMaterial color="#c98563" roughness={0.7} />
-      </mesh>
-      <mesh position={[-0.07, 1.13, 0.18]}>
-        <sphereGeometry args={[0.025, 8, 8]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
-      <mesh position={[0.07, 1.13, 0.18]}>
-        <sphereGeometry args={[0.025, 8, 8]} />
-        <meshStandardMaterial color="#1a1a1a" />
-      </mesh>
+      <primitive object={scene} scale={0.01} />
     </group>
   )
 }
 
+useGLTF.preload(IDLE_URL)
+useGLTF.preload(WALK_URL)
+
 export function LocalPlayer({ ref, userId }) {
-  const bodyRef = useRef()
   const headingRef = useRef(Math.PI)
-  const phaseRef = useRef(0)
-  const color = useStore((s) => s.self?.color ?? '#f4c95a')
+  const movingRef = useRef(false)
+  const [moving, setMoving] = useState(false)
 
   useFrame((_, delta) => {
     const group = ref?.current
     if (!group) return
     const input = useStore.getState().input
-    const moving = Math.abs(input.x) + Math.abs(input.z) > 0.001
-    if (moving) {
+    const isMoving = Math.abs(input.x) + Math.abs(input.z) > 0.001
+    if (isMoving) {
       const w = inputToWorld(input)
       group.position.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, group.position.x + w.x * SPEED * delta))
       group.position.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, group.position.z + w.z * SPEED * delta))
       headingRef.current = Math.atan2(w.x, w.z)
-      phaseRef.current += delta * 9
     }
     group.rotation.y = headingRef.current
-    if (bodyRef.current) {
-      const target = moving ? Math.abs(Math.sin(phaseRef.current)) * 0.06 : 0
-      bodyRef.current.position.y += (target - bodyRef.current.position.y) * 0.25
+    if (isMoving !== movingRef.current) {
+      movingRef.current = isMoving
+      setMoving(isMoving)
     }
     sendMove(group.position.x, group.position.z, headingRef.current)
   })
 
   return (
     <group ref={ref} position={[0, 0, 1]}>
-      <Avatar color={color} bodyRef={bodyRef} userId={userId} />
+      <Avatar moving={moving} userId={userId} />
     </group>
   )
 }
 
 export function RemotePlayer({ player }) {
   const groupRef = useRef()
-  const bodyRef = useRef()
-  const phaseRef = useRef(0)
   const lastXRef = useRef(0)
   const lastZRef = useRef(0)
+  const movingRef = useRef(false)
+  const [moving, setMoving] = useState(false)
 
   useFrame((_, delta) => {
     const p = positions.get(player.id)
@@ -127,19 +135,18 @@ export function RemotePlayer({ player }) {
     g.rotation.y = p.dir
     const dx = p.x - lastXRef.current
     const dz = p.z - lastZRef.current
-    const moving = Math.hypot(dx, dz) > 0.0008
+    const isMoving = Math.hypot(dx, dz) > 0.0008
     lastXRef.current = p.x
     lastZRef.current = p.z
-    if (moving) phaseRef.current += delta * 9
-    if (bodyRef.current) {
-      const target = moving ? Math.abs(Math.sin(phaseRef.current)) * 0.06 : 0
-      bodyRef.current.position.y += (target - bodyRef.current.position.y) * 0.25
+    if (isMoving !== movingRef.current) {
+      movingRef.current = isMoving
+      setMoving(isMoving)
     }
   })
 
   return (
     <group ref={groupRef}>
-      <Avatar color={player.color} bodyRef={bodyRef} userId={player.userId} />
+      <Avatar moving={moving} userId={player.userId} />
     </group>
   )
 }

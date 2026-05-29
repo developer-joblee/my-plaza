@@ -1,4 +1,5 @@
 import './globals.css'
+import { Provider } from '@/components/ui/provider'
 
 export const metadata = {
   title: 'MyPlaza',
@@ -7,8 +8,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="pt-BR">
-      <body>{children}</body>
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body>
+        <Provider>{children}</Provider>
+      </body>
     </html>
   )
 }

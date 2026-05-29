@@ -62,38 +62,10 @@ export function Lights() {
 
 function Floor() {
   return (
-    <group>
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[40, 30]} />
-        <meshStandardMaterial color={C.street} roughness={1} />
-      </mesh>
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.005, 0]}>
-        <planeGeometry args={[18, 10]} />
-        <meshStandardMaterial color={C.sidewalk} roughness={1} />
-      </mesh>
-      {[-6, -3, 0, 3, 6].map((x) => (
-        <mesh key={`v${x}`} rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.001, 0]}>
-          <planeGeometry args={[0.04, 10]} />
-          <meshBasicMaterial color={C.sidewalkLine} />
-        </mesh>
-      ))}
-      {[-3, 0, 3].map((z) => (
-        <mesh key={`h${z}`} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, z]}>
-          <planeGeometry args={[18, 0.04]} />
-          <meshBasicMaterial color={C.sidewalkLine} />
-        </mesh>
-      ))}
-      <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-        <planeGeometry args={[8, 5]} />
-        <meshStandardMaterial color={C.woodFloor} roughness={0.7} />
-      </mesh>
-      {[-1.8, -1.2, -0.6, 0, 0.6, 1.2, 1.8].map((z) => (
-        <mesh key={z} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, z]}>
-          <planeGeometry args={[8, 0.025]} />
-          <meshBasicMaterial color={C.woodDark} />
-        </mesh>
-      ))}
-    </group>
+    <mesh receiveShadow rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <planeGeometry args={[18, 12]} />
+      <meshStandardMaterial color={C.woodFloor} roughness={0.7} />
+    </mesh>
   )
 }
 
@@ -441,31 +413,12 @@ function Bicycle({ position = [-4.5, 0, 3.5] }) {
   )
 }
 
-export function Scene({ showFrontWall = true } = {}) {
+export function Scene() {
   return (
     <>
       <Floor />
-      <BrickWall size={[8.2, 3, 0.2]} position={[0, 1.5, -2.5]} facing="z" />
-      <BrickWall size={[0.2, 3, 5.2]} position={[-4.1, 1.5, 0]} facing="x" />
-      <BackWallDecor />
-      <Counter />
-      <PendantLamp position={[-1.5, 2.5, -0.5]} />
-      <PendantLamp position={[1.0, 2.5, 0.5]} />
-      <PendantLamp position={[2.6, 2.5, -0.5]} />
-      <Table position={[1.8, 0, 1.2]} />
-      <Chair position={[2.45, 0, 1.2]} rotation={[0, -Math.PI / 2, 0]} />
-      <Chair position={[1.15, 0, 1.2]} rotation={[0, Math.PI / 2, 0]} />
-      <Table position={[-2.5, 0, 1.5]} />
-      <Chair position={[-2.5, 0, 0.85]} rotation={[0, 0, 0]} />
-      <Chair position={[-2.5, 0, 2.15]} rotation={[0, Math.PI, 0]} />
-      {showFrontWall && <FrontWall />}
-      <OutdoorSet />
-      <Lamppost position={[-6.0, 0, 3.5]} />
-      <Plant position={[-4.3, 0, 2.6]} size={1.2} />
-      <Plant position={[4.3, 0, -2.0]} size={1.0} leafColor={C.leafDark} />
-      <Plant position={[3.7, 0, 2.6]} size={0.9} />
-      <Plant position={[-3.0, 0, -2.0]} size={0.85} leafColor={C.leafDark} />
-      <Bicycle position={[-4.5, 0, 3.8]} />
+      <BrickWall size={[16.4, 6, 0.4]} position={[0, 3, -5.0]} facing="z" />
+      <BrickWall size={[0.4, 6, 10.4]} position={[-8.2, 3, 0]} facing="x" />
     </>
   )
 }

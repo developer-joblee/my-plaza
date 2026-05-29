@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Box, Button, Field, Flex, Heading, Input, Stack, Text, InputGroup, IconButton } from '@chakra-ui/react'
 import { createClient } from '@/lib/supabase/client'
+import { LucideEye, LucideEyeOff } from 'lucide-react'
 
 const C = {
   bg: 'linear-gradient(180deg, #fbe6c2 0%, #f5cf9a 55%, #e2a872 100%)',
@@ -19,17 +21,20 @@ const C = {
   successText: '#2a6a3a',
 }
 
-const inputStyle = {
+const inputProps = {
   fontFamily: 'inherit',
-  fontSize: 15,
-  padding: '10px 12px',
-  borderRadius: 10,
+  fontSize: '15px',
+  px: '12px',
+  py: '10px',
+  height: 'auto',
+  borderRadius: '10px',
   border: `2px solid ${C.border}`,
   background: C.input,
   color: C.text,
-  outline: 'none',
   width: '100%',
-  boxSizing: 'border-box',
+  _focus: { outline: 'none', boxShadow: 'none', borderColor: C.border },
+  _focusVisible: { outline: 'none', boxShadow: 'none', borderColor: C.border },
+  _placeholder: { color: C.muted },
 }
 
 export default function LoginPage() {
@@ -37,6 +42,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState('login') // 'login' | 'signup' | 'magic'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
@@ -85,179 +91,211 @@ export default function LoginPage() {
     setStatus('idle')
   }
 
+  const submitButtonProps = {
+    type: 'submit',
+    disabled: status === 'loading',
+    fontFamily: 'inherit',
+    fontWeight: 700,
+    fontSize: '16px',
+    px: '18px',
+    py: '13px',
+    height: 'auto',
+    borderRadius: '12px',
+    border: `3px solid ${C.border}`,
+    background: status === 'loading' ? C.btnDisabled : C.btn,
+    color: C.text,
+    cursor: status === 'loading' ? 'wait' : 'pointer',
+    boxShadow: `0 5px 0 ${C.border}`,
+    transform: status === 'loading' ? 'translateY(2px)' : 'none',
+    transition: 'transform 120ms, background 120ms',
+    _hover: { background: status === 'loading' ? C.btnDisabled : C.btn },
+    _active: { background: status === 'loading' ? C.btnDisabled : C.btn },
+  }
+
+  const linkButtonProps = {
+    type: 'button',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '12px',
+    color: C.muted,
+    textDecoration: 'underline',
+    fontFamily: 'inherit',
+    height: 'auto',
+    padding: 0,
+    _hover: { background: 'none' },
+    _active: { background: 'none' },
+  }
+
   return (
-    <div
-      style={{
-        width: '100vw', height: '100vh',
-        display: 'grid', placeItems: 'center',
-        background: C.bg, color: C.text,
-      }}
+    <Box
+      width="100vw"
+      height="100vh"
+      display="grid"
+      placeItems="center"
+      background={C.bg}
+      color={C.text}
     >
-      <div
-        style={{
-          background: C.card,
-          border: `4px solid ${C.border}`,
-          borderRadius: 18,
-          padding: '28px 32px',
-          width: 'min(400px, 92vw)',
-          boxShadow: '0 18px 0 -8px #b73a2b, 0 24px 30px rgba(58,34,24,0.2)',
-          display: 'flex', flexDirection: 'column', gap: 16,
-        }}
+      <Stack
+        background={C.card}
+        border={`4px solid ${C.border}`}
+        borderRadius="18px"
+        px="32px"
+        py="28px"
+        width="min(400px, 92vw)"
+        boxShadow="0 18px 0 -8px #b73a2b, 0 24px 30px rgba(58,34,24,0.2)"
+        gap="16px"
       >
-        <h1 style={{ margin: 0, fontSize: 28, letterSpacing: -0.5, textAlign: 'center' }}>
+        <Heading as="h1" margin={0} fontSize="28px" letterSpacing="-0.5px" textAlign="center" fontWeight={700}>
           MyPlaza
-        </h1>
-        <p style={{ margin: 0, fontSize: 13, opacity: 0.7, textAlign: 'center' }}>
+        </Heading>
+        <Text margin={0} fontSize="13px" opacity={0.7} textAlign="center">
           Escritório social virtual
-        </p>
+        </Text>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', borderRadius: 10, border: `2px solid ${C.border}`, overflow: 'hidden' }}>
+        <Flex borderRadius="10px" border={`2px solid ${C.border}`} overflow="hidden">
           {[['login', 'Entrar'], ['signup', 'Criar conta']].map(([key, label]) => (
-            <button
+            <Button
               key={key}
               type="button"
               onClick={() => { setMode(key); reset() }}
-              style={{
-                flex: 1, padding: '9px 0',
-                fontFamily: 'inherit', fontWeight: 700, fontSize: 13,
-                border: 'none', cursor: 'pointer',
-                background: mode === key ? C.border : 'transparent',
-                color: mode === key ? '#fbe6c2' : C.text,
-                transition: 'background 120ms',
-              }}
+              flex="1"
+              px={0}
+              py="9px"
+              height="auto"
+              borderRadius={0}
+              fontFamily="inherit"
+              fontWeight={700}
+              fontSize="13px"
+              border="none"
+              cursor="pointer"
+              background={mode === key ? C.border : 'transparent'}
+              color={mode === key ? '#fbe6c2' : C.text}
+              transition="background 120ms"
+              _hover={{ background: mode === key ? C.border : 'transparent' }}
+              _active={{ background: mode === key ? C.border : 'transparent' }}
             >
               {label}
-            </button>
+            </Button>
           ))}
-        </div>
+        </Flex>
 
         {success && (
-          <div style={{ background: C.success, border: `2px solid ${C.successBorder}`, borderRadius: 10, padding: '10px 12px', fontSize: 13, color: C.successText }}>
+          <Box
+            background={C.success}
+            border={`2px solid ${C.successBorder}`}
+            borderRadius="10px"
+            px="12px"
+            py="10px"
+            fontSize="13px"
+            color={C.successText}
+          >
             {success}
-          </div>
+          </Box>
         )}
 
         {mode !== 'magic' ? (
-          <form onSubmit={handlePasswordSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13 }}>
-              <span style={{ fontWeight: 600 }}>E-mail</span>
-              <input
+          <Stack as="form" onSubmit={handlePasswordSubmit} gap="12px">
+            <Field.Root>
+              <Field.Label fontSize="13px" fontWeight={600} color={C.text} mb="5px">E-mail</Field.Label>
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="voce@empresa.com"
                 autoFocus
                 required
-                style={inputStyle}
+                {...inputProps}
               />
-            </label>
+            </Field.Root>
 
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13 }}>
-              <span style={{ fontWeight: 600 }}>Senha</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === 'signup' ? 'Mínimo 6 caracteres' : '••••••••'}
-                required
-                minLength={6}
-                style={inputStyle}
-              />
-            </label>
+            <Field.Root>
+              <Field.Label fontSize="13px" fontWeight={600} color={C.text} mb="5px">Senha</Field.Label>
+             <InputGroup endElement={<IconButton size="sm" variant="plain" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <LucideEyeOff /> : <LucideEye />}</IconButton>}>
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === 'signup' ? 'Mínimo 6 caracteres' : '••••••••'}
+                  required
+                  minLength={6}
+                  {...inputProps}
+                />
+              </InputGroup>
+            </Field.Root>
 
             {error && (
-              <div style={{ background: C.error, color: C.errorText, borderRadius: 10, padding: '10px 12px', fontSize: 13 }}>
+              <Box
+                background={C.error}
+                color={C.errorText}
+                borderRadius="10px"
+                px="12px"
+                py="10px"
+                fontSize="13px"
+              >
                 {error}
-              </div>
+              </Box>
             )}
 
-            <button
-              type="submit"
-              disabled={status === 'loading'}
-              style={{
-                fontFamily: 'inherit', fontWeight: 700, fontSize: 16,
-                padding: '13px 18px', borderRadius: 12, border: `3px solid ${C.border}`,
-                background: status === 'loading' ? C.btnDisabled : C.btn,
-                color: C.text,
-                cursor: status === 'loading' ? 'wait' : 'pointer',
-                boxShadow: `0 5px 0 ${C.border}`,
-                transform: status === 'loading' ? 'translateY(2px)' : 'none',
-                transition: 'transform 120ms, background 120ms',
-              }}
-            >
+            <Button {...submitButtonProps}>
               {status === 'loading'
                 ? (mode === 'login' ? 'Entrando…' : 'Criando conta…')
                 : (mode === 'login' ? 'Entrar' : 'Criar conta')}
-            </button>
+            </Button>
 
-            <div style={{ textAlign: 'center' }}>
-              <button
-                type="button"
+            <Box textAlign="center">
+              <Button
+                {...linkButtonProps}
                 onClick={() => { setMode('magic'); reset() }}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: 12, color: C.muted, textDecoration: 'underline',
-                  fontFamily: 'inherit',
-                }}
               >
                 Entrar com link mágico (e-mail)
-              </button>
-            </div>
-          </form>
+              </Button>
+            </Box>
+          </Stack>
         ) : (
-          <form onSubmit={handleMagicLink} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13 }}>
-              <span style={{ fontWeight: 600 }}>E-mail</span>
-              <input
+          <Stack as="form" onSubmit={handleMagicLink} gap="12px">
+            <Field.Root>
+              <Field.Label fontSize="13px" fontWeight={600} color={C.text} mb="5px">E-mail</Field.Label>
+              <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="voce@empresa.com"
                 autoFocus
                 required
-                style={inputStyle}
+                {...inputProps}
               />
-            </label>
+            </Field.Root>
 
             {error && (
-              <div style={{ background: C.error, color: C.errorText, borderRadius: 10, padding: '10px 12px', fontSize: 13 }}>
+              <Box
+                background={C.error}
+                color={C.errorText}
+                borderRadius="10px"
+                px="12px"
+                py="10px"
+                fontSize="13px"
+              >
                 {error}
-              </div>
+              </Box>
             )}
 
-            <button
-              type="submit"
-              disabled={status === 'loading'}
-              style={{
-                fontFamily: 'inherit', fontWeight: 700, fontSize: 16,
-                padding: '13px 18px', borderRadius: 12, border: `3px solid ${C.border}`,
-                background: status === 'loading' ? C.btnDisabled : C.btn,
-                color: C.text,
-                cursor: status === 'loading' ? 'wait' : 'pointer',
-                boxShadow: `0 5px 0 ${C.border}`,
-                transform: status === 'loading' ? 'translateY(2px)' : 'none',
-              }}
-            >
+            <Button {...submitButtonProps}>
               {status === 'loading' ? 'Enviando…' : 'Enviar link'}
-            </button>
+            </Button>
 
-            <div style={{ textAlign: 'center' }}>
-              <button
-                type="button"
+            <Box textAlign="center">
+              <Button
+                {...linkButtonProps}
                 onClick={() => { setMode('login'); reset() }}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontSize: 12, color: C.muted, textDecoration: 'underline',
-                  fontFamily: 'inherit',
-                }}
               >
                 ← Voltar para senha
-              </button>
-            </div>
-          </form>
+              </Button>
+            </Box>
+          </Stack>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Box>
   )
 }

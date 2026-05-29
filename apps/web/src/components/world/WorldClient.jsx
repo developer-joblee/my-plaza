@@ -267,7 +267,7 @@ export default function WorldClient({ room, roomName, user, livekitUrl, livekitT
         <Canvas shadows dpr={[1, 2]} gl={{ antialias: true }}>
           <CameraFollow targetRef={playerRef} />
           <Lights />
-          <Scene showFrontWall={false} />
+          <Scene />
           <LocalPlayer ref={playerRef} userId={user.id} />
           <RemotePlayers />
           <ContactShadows position={[0, 0.025, 0]} opacity={0.45} scale={30} blur={2.4} far={10} />

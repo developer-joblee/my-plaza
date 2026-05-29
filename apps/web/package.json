@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@chakra-ui/react": "^3.35.0",
+    "@emotion/react": "^11.14.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@supabase/ssr": "^0.6.1",
@@ -16,6 +18,7 @@
     "livekit-client": "^2.13.0",
     "livekit-server-sdk": "^2.11.0",
     "next": "^15.3.2",
+    "next-themes": "^0.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "three": "^0.184.0",
